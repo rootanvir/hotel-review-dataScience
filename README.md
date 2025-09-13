@@ -2,7 +2,7 @@
 
 ## Project Instructions
 -	~~Select any one of the above project types for your final term project. After that, find an appropriate dataset for your project. Instead of that, you can collect your data using scraping.~~
--	Apply the text processing steps (learned in the classes) to the text of your dataset, which you will cluster.
+-	Apply the text processing steps (tokenization, stopwords, lowercasing) to the text of your dataset, which you will cluster.
 -	Calculate TF-IDF.
 -	Apply three clustering algorithms: K-means, Hierarchical, and DBSCAN.
 -	Use PCA to reduce the features for better cluster visualization.
