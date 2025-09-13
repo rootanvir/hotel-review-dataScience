@@ -1,3 +1,5 @@
+## Dataset [Link](https://www.kaggle.com/datasets/datafiniti/hotel-reviews/data?select=Datafiniti_Hotel_Reviews.csv)
+
 ## Project Instructions
 -	~~Select any one of the above project types for your final term project. After that, find an appropriate dataset for your project. Instead of that, you can collect your data using scraping.~~
 -	Apply the text processing steps (learned in the classes) to the text of your dataset, which you will cluster.
