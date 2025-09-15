@@ -24,6 +24,36 @@ tokenization_no_stop <- data %>%
   })) %>%
   select(tokens)
 
-# Optional: view first few rows
-head(tokenization)
-head(tokenization_no_stop)
+# word and frequency
+word_freq <- tokenization_no_stop %>%
+  unnest(tokens) %>%       
+  group_by(tokens) %>%     
+  summarise(frequency = n(), .groups = 'drop') %>%  
+  arrange(desc(frequency)) %>%    
+  rename(word = tokens)
+
+
+# Term Frequency per word per document
+tf_data <- tokenization_no_stop %>%
+  mutate(doc_id = row_number()) %>%       # Assign unique ID for each review
+  unnest(tokens) %>%
+  count(doc_id, tokens, name = "term_count") %>% # count term per document
+  group_by(doc_id) %>%
+  mutate(tf = term_count / sum(term_count)) %>%  # TF = term_count / total terms in doc
+  ungroup() %>%
+  rename(word = tokens)
+
+
+
+# Number of documents
+total_docs <- nrow(tokenization_no_stop)
+
+# Document frequency (number of docs containing the word)
+idf_data <- tokenization_no_stop %>%
+  mutate(doc_id = row_number()) %>%
+  unnest(tokens) %>%
+  distinct(doc_id, tokens) %>%
+  count(tokens, name = "doc_freq") %>%
+  mutate(idf = log(total_docs / doc_freq)) %>%  # IDF formula
+  rename(word = tokens)
+
