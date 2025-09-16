@@ -107,8 +107,36 @@ fviz_cluster(kmeans_result,
              show.clust.cent = TRUE) +
   ggtitle("K-means Clustering of Reviews (Top 10 Words)")
 
+
+
+
+
+
+
+
 # =======================
-# Now you have two data tables in R
+# Hierarchical Clustering (Top 10 Words)
 # =======================
-# 1. tf_idf_matrix_full      -> full matrix + word frequencies
-# 2. tf_idf_matrix_top10     -> top 10 words only
+
+# Convert TF-IDF top 10 table to numeric matrix (remove doc_id)
+tf_idf_mat <- as.matrix(tf_idf_matrix_top10 %>% select(-doc_id))
+
+# Compute distance matrix using Euclidean distance
+dist_matrix <- dist(tf_idf_mat, method = "euclidean")
+
+# Perform hierarchical clustering using Ward's method
+hc <- hclust(dist_matrix, method = "ward.D2")
+
+# Plot dendrogram
+plot(hc, labels = FALSE, hang = -1, main = "Hierarchical Clustering Dendrogram (Top 10 Words)")
+
+# Cut tree into k clusters
+k <- 4
+clusters <- cutree(hc, k = k)
+
+# Add cluster assignments to the top 10 TF-IDF table
+tf_idf_matrix_top10_clustered <- tf_idf_matrix_top10 %>%
+  mutate(cluster = clusters)
+
+#====X=============X=====================X==================X=======================X=====
+
