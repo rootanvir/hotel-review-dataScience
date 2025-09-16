@@ -8,6 +8,7 @@ library(tibble)
 library(ggplot2)
 library(FactoMineR)
 library(factoextra)
+library(dbscan)
 
 # =======================
 # Load data
@@ -140,3 +141,36 @@ tf_idf_matrix_top10_clustered <- tf_idf_matrix_top10 %>%
 
 #====X=============X=====================X==================X=======================X=====
 
+
+
+
+#===============================
+#            DBSCAN
+#===============================
+
+# =======================
+# Prepare TF-IDF matrix
+# =======================
+tf_idf_mat <- as.matrix(tf_idf_matrix_top10 %>% select(-doc_id))
+
+# =======================
+# DBSCAN clustering
+# =======================
+# eps = neighborhood radius, minPts = minimum points in a cluster
+dbscan_result <- dbscan(tf_idf_mat, eps = 0.8, minPts = 5)
+
+# Cluster assignments
+tf_idf_matrix_top10_dbscan <- tf_idf_matrix_top10 %>%
+  mutate(cluster = dbscan_result$cluster)
+
+# =======================
+# Visualize DBSCAN clusters (2D using PCA)
+# =======================
+fviz_cluster(list(data = tf_idf_mat, cluster = dbscan_result$cluster),
+             geom = "point",
+             ellipse = FALSE,
+             repel = TRUE,
+             show.clust.cent = TRUE) +
+  ggtitle("DBSCAN Clustering of Reviews (Top 10 Words)")
+
+#=========X=================X======================X========================
