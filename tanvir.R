@@ -3,57 +3,112 @@ library(tokenizers)
 library(dplyr)
 library(purrr)
 library(tidytext)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+library(FactoMineR)
+library(factoextra)
 
-# Read CSV
-data <- read_csv("D:/data science final project/archive/7282_1_5k.csv")
+# =======================
+# Load data
+# =======================
+data <- read_csv("D:/data science final project/archive/7282_1_2k.csv")
 
-# 1️⃣ Tokenization dataset (all tokens, one row per review)
-tokenization <- data %>%
-  mutate(tokens = map(reviews.text, ~ {
-    words <- tokenize_words(.x)[[1]]   # tokenize
-    tolower(words)                      # convert to lowercase
-  })) %>%
-  select(tokens)
-
-# 2️⃣ Tokenization without stop words dataset
+# =======================
+# Tokenization & Stop word
+# =======================
 tokenization_no_stop <- data %>%
   mutate(tokens = map(reviews.text, ~ {
-    words <- tokenize_words(.x)[[1]]                 # tokenize
-    words <- tolower(words)                           # lowercase
-    words[!words %in% get_stopwords()$word]          # remove stop words
+    words <- tokenize_words(.x)[[1]]
+    words <- tolower(words)
+    words <- words[!words %in% get_stopwords(language = "en")$word]
+    words
   })) %>%
   select(tokens)
 
-# word and frequency
+# =======================
+# Word frequencies
+# =======================
 word_freq <- tokenization_no_stop %>%
-  unnest(tokens) %>%       
-  group_by(tokens) %>%     
-  summarise(frequency = n(), .groups = 'drop') %>%  
-  arrange(desc(frequency)) %>%    
+  unnest(tokens) %>%
+  count(tokens, name = "frequency", sort = TRUE) %>%
   rename(word = tokens)
 
+# =======================
+# Top 10 words
+# =======================
+top_words <- word_freq %>%
+  slice_max(frequency, n = 10) %>%
+  pull(word)
 
-# Term Frequency per word per document
+# =======================
+# TF
+# =======================
 tf_data <- tokenization_no_stop %>%
-  mutate(doc_id = row_number()) %>%       # Assign unique ID for each review
+  mutate(doc_id = row_number()) %>%
   unnest(tokens) %>%
-  count(doc_id, tokens, name = "term_count") %>% # count term per document
+  count(doc_id, tokens, name = "term_count") %>%
   group_by(doc_id) %>%
-  mutate(tf = term_count / sum(term_count)) %>%  # TF = term_count / total terms in doc
+  mutate(tf = term_count / sum(term_count)) %>%
   ungroup() %>%
   rename(word = tokens)
 
-
-
-# Number of documents
+# =======================
+# IDF
+# =======================
 total_docs <- nrow(tokenization_no_stop)
-
-# Document frequency (number of docs containing the word)
 idf_data <- tokenization_no_stop %>%
   mutate(doc_id = row_number()) %>%
   unnest(tokens) %>%
   distinct(doc_id, tokens) %>%
   count(tokens, name = "doc_freq") %>%
-  mutate(idf = log(total_docs / doc_freq)) %>%  # IDF formula
+  mutate(idf = log(total_docs / doc_freq)) %>%
   rename(word = tokens)
 
+# =======================
+# Full TF-IDF table
+# =======================
+tf_idf_full <- tf_data %>%
+  left_join(idf_data, by = "word") %>%
+  mutate(tf_idf = tf * idf) %>%
+  left_join(word_freq, by = "word")  # add frequency column
+
+# Full TF-IDF matrix (data table in R)
+tf_idf_matrix_full <- tf_idf_full %>%
+  select(doc_id, word, tf_idf) %>%
+  pivot_wider(names_from = word, values_from = tf_idf, values_fill = 0) %>%
+  as_tibble()
+
+# =======================
+# Top 10 TF-IDF table
+# =======================
+tf_idf_top10 <- tf_idf_full %>%
+  filter(word %in% top_words)
+
+# Top 10 TF-IDF matrix (data table in R)
+tf_idf_matrix_top10 <- tf_idf_top10 %>%
+  select(doc_id, word, tf_idf) %>%
+  pivot_wider(names_from = word, values_from = tf_idf, values_fill = 0) %>%
+  as_tibble()
+
+# =======================
+# K-means clustering on top 10 words
+# =======================
+set.seed(123)
+k <- 4
+kmeans_result <- kmeans(as.matrix(tf_idf_matrix_top10 %>% select(-doc_id)), centers = k, nstart = 25)
+
+# Visualization
+fviz_cluster(kmeans_result,
+             data = as.matrix(tf_idf_matrix_top10 %>% select(-doc_id)),
+             geom = "point",
+             ellipse.type = "convex",
+             repel = TRUE,
+             show.clust.cent = TRUE) +
+  ggtitle("K-means Clustering of Reviews (Top 10 Words)")
+
+# =======================
+# Now you have two data tables in R
+# =======================
+# 1. tf_idf_matrix_full      -> full matrix + word frequencies
+# 2. tf_idf_matrix_top10     -> top 10 words only
