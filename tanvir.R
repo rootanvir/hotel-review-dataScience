@@ -111,10 +111,6 @@ fviz_cluster(kmeans_result,
 
 
 
-
-
-
-
 # =======================
 # Hierarchical Clustering (Top 10 Words)
 # =======================
@@ -200,18 +196,6 @@ ggplot(pca_2d, aes(x = PC1, y = PC2)) +
        x = "PC1", y = "PC2") +
   theme_minimal()
 #==========X===============X===================X======================
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
