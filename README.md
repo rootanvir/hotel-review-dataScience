@@ -1,5 +1,5 @@
 ## Dataset [Link](https://www.kaggle.com/datasets/datafiniti/hotel-reviews/data?select=Datafiniti_Hotel_Reviews.csv)
-
+## OverLeaf [Preview](https://www.overleaf.com/read/brkgynvptfvf#89fda0)
 ## Project Instructions
 -	~~Select any one of the above project types for your final term project. After that, find an appropriate dataset for your project. Instead of that, you can collect your data using scraping.~~
 -	Apply the text processing steps (tokenization, stopwords, lowercasing) to the text of your dataset, which you will cluster.
