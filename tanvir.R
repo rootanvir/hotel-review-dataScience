@@ -174,3 +174,102 @@ fviz_cluster(list(data = tf_idf_mat, cluster = dbscan_result$cluster),
   ggtitle("DBSCAN Clustering of Reviews (Top 10 Words)")
 
 #=========X=================X======================X========================
+
+
+
+
+
+#============================================================
+#                             PCA
+#================================================================
+
+# Prepare TF-IDF matrix (remove doc_id)
+tf_idf_mat <- as.matrix(tf_idf_matrix_top10 %>% select(-doc_id))
+
+# Apply PCA
+pca_result <- prcomp(tf_idf_mat, scale. = TRUE)
+
+# Take first 2 principal components
+pca_2d <- as.data.frame(pca_result$x[, 1:2])
+pca_2d$doc_id <- tf_idf_matrix_top10$doc_id  # optional: keep doc IDs
+
+# Optional: visualize the points in 2D
+ggplot(pca_2d, aes(x = PC1, y = PC2)) +
+  geom_point(size = 2, alpha = 0.8) +
+  labs(title = "PCA 2D Projection of Top 10 TF-IDF Features",
+       x = "PC1", y = "PC2") +
+  theme_minimal()
+#==========X===============X===================X======================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#====================================================================
+#                 PCA
+#=========================================================================
+
+# -----------------------
+# Step 0: Prepare TF-IDF matrix
+# -----------------------
+tf_idf_mat <- as.matrix(tf_idf_matrix_top10 %>% select(-doc_id))
+
+# Optional: cluster assignments (for coloring)
+set.seed(123)
+tf_idf_matrix_top10$cluster <- sample(1:3, nrow(tf_idf_matrix_top10), replace = TRUE)
+
+# -----------------------
+# Plot 1: Before PCA (first two TF-IDF features)
+# -----------------------
+before_pca_df <- as.data.frame(tf_idf_mat[, 1:2])
+colnames(before_pca_df) <- c("Feature1", "Feature2")
+before_pca_df$cluster <- tf_idf_matrix_top10$cluster
+
+ggplot(before_pca_df, aes(x = Feature1, y = Feature2, color = factor(cluster))) +
+  geom_point(size = 2, alpha = 0.8) +
+  labs(title = "Cluster Visualization Before PCA",
+       x = "TF-IDF Feature 1", y = "TF-IDF Feature 2", color = "Cluster") +
+  theme_minimal()
+
+# -----------------------
+# Step 1: Standardize the data for PCA
+# -----------------------
+tf_idf_scaled <- scale(tf_idf_mat)
+
+# Step 2: Covariance matrix
+cov_matrix <- cov(tf_idf_scaled)
+
+# Step 3: Eigenvectors and eigenvalues
+eigen_result <- eigen(cov_matrix)
+eigenvectors <- eigen_result$vectors
+
+# Step 4: Select top 2 PCs
+top_eigenvectors <- eigenvectors[, 1:2]
+
+# Step 5: Transform onto new plane
+pca_manual_2d <- tf_idf_scaled %*% top_eigenvectors
+pca_manual_2d <- as.data.frame(pca_manual_2d)
+colnames(pca_manual_2d) <- c("PC1", "PC2")
+pca_manual_2d$cluster <- tf_idf_matrix_top10$cluster
+
+# -----------------------
+# Plot 2: After PCA
+# -----------------------
+ggplot(pca_manual_2d, aes(x = PC1, y = PC2, color = factor(cluster))) +
+  geom_point(size = 2, alpha = 0.8) +
+  labs(title = "Cluster Visualization After PCA (Manual)",
+       x = "PC1", y = "PC2", color = "Cluster") +
+  theme_minimal()
+#===============X===============X===========================X=============
+
+
