@@ -110,6 +110,17 @@ fviz_cluster(kmeans_result,
 
 
 
+ggplot(pca_data, aes(x = PC1, y = PC2, color = cluster)) +
+  geom_text(aes(label = word, size = frequency), fontface = "bold") +
+  scale_size(range = c(4, 10)) +
+  labs(title = "K-means Clustering of Top 10 Words (TF-IDF)",
+       size = "Word Frequency") +
+  theme_minimal()
+
+
+
+
+
 
 
 tf_idf_mat <- as.matrix(tf_idf_matrix_top10 %>% select(-doc_id))

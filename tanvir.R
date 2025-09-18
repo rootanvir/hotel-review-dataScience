@@ -13,6 +13,7 @@ library(dbscan)
 # =======================
 # Load data
 # =======================
+
 data <- read_csv("D:/data science final project/archive/7282_1_2k.csv")
 
 # =======================
